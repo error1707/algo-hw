@@ -69,7 +69,7 @@ private:
             } else if(suf == &root_) {
                 node->terminal = &root_;
             } else {
-                node->terminal = go(get_suffix(node));
+                node->terminal = term(get_suffix(node));
             }
         }
         return node->terminal;
