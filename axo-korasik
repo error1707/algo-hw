@@ -1,0 +1,93 @@
+#include <map>
+#include <string>
+
+struct Node {
+    std::map<char, Node> children;
+
+    Node* terminal = nullptr;
+    Node* suffix = nullptr;
+    Node* parent = nullptr;
+
+    bool is_terminal = false;
+
+    char sym = 0;
+    std::map<char, Node*> go;
+
+    Node(Node* _parent, char c) : parent(_parent), sym(c) {}
+};
+
+class Trie {
+    std::string result_;
+
+public:
+
+    void add_word(const std::string& word) {
+        Node* node = &root_;
+        for (char c : word) {
+            auto it = node->children.find(c);
+            if (it == node->children.end()) {
+                it = node->children.emplace(c, Node(node, c)).first;
+            }
+            node = &(it->second);
+        }
+        node->is_terminal = true;
+    }
+
+private:
+    Node* get_suffix(Node* node) {
+        if (node->suffix != nullptr) return node->suffix;
+
+        if (node == &root_ || node->parent == &root_) {
+            node->suffix = &root_;
+        } else {
+            node->suffix = go(get_suffix(node->parent), node->sym);
+        }
+        return node->suffix;
+    }
+
+    Node* go(Node* node, char c) {
+        if (node->go.count(c) > 0) {
+            return node->go[c];
+        }
+
+        auto it = node->children.find(c);
+        if (it != node->children.end()) {
+            node->go[c] = &(it->second);
+        } else if (node == &root_) {
+            node->go[c] = &root_;
+        } else {
+            node->go[c] = go(get_suffix(node), c);
+        }
+        return node->go[c];
+    }
+
+    Node* term(Node* node) {
+        if(node->terminal == nullptr) {
+            Node* suf = get_suffix(node);
+            if(suf->is_terminal) {
+                node->terminal = suf;
+            } else if(suf == &root_) {
+                node->terminal = &root_;
+            } else {
+                node->terminal = go(get_suffix(node));
+            }
+        }
+        return node->terminal;
+    }
+
+    /*bool find_str(const std::string& str) const {
+        const Node* node = &root_;
+        for (char c : str) {
+            auto it = node->children.find(c);
+            if (it != node->children.end()) {
+                node = &(it->second);
+            } else {
+                return nullptr;
+            }
+        }
+
+    }*/
+
+
+    Node root_;
+};
